@@ -1,60 +1,64 @@
-services :
-    api:
-        image: canals/php:latest
+version: '3'
+networks:
+    immo-project.net:
+        driver: bridge
+services:
+    php:
+        image: 'canals/php:latest'
         volumes:
-            - ./api:/var/www
             - ./api/public:/var/www/html
+            - ./api:/var/www
         ports:
             - '8000:80'
-        restart: always
-        environment:
-            MYSQL_HOST: root
-            MYSQL_DATABASE: db
-            MYSQL_USER: admin
-            MYSQL_PASSWORD: admin
-    db:
-        image: mysql:5.7
-        volumes:
-            - ./db:/var/lib/mysql
-            - ./sql:/docker-entrypoint-initdb.d
-        ports:
-            - '3306:3306'
-        restart: always
+        working_dir: /var/www/
+        networks:
+            immo-project.net:
+
+    mysql:
+        image: 'mysql:latest'
         environment:
             MYSQL_ROOT_PASSWORD: root
             MYSQL_DATABASE: db
             MYSQL_USER: admin
             MYSQL_PASSWORD: admin
+        ports:
+            - '3306:3306'
+        networks:
+            - immo-project.net
 
-#    front_admin:
-#        build :
-#            context: .
-#            dockerfile: Dockerfile
-#        working_dir: /app
-#        volumes:
-#            - ./front_admin:/app
-#            - ./front_admin/node_modules
-#        ports:
-#            - 8081:8080
-#
-#        command: npm install && npm run dev
-#
-#    front_client:
-#        build :
-#            context: .
-#            dockerfile: Dockerfile
-#        image: node:latest
-#        working_dir: /app
-#        volumes:
-#            - ./front_client:/app
-#            - ./front_client/node_modules
-#        ports:
-#            - 8082:8080
-#
-#        command : npm install && npm run dev
 
-    adminer :
+    node:
+        image: 'node:latest'
+        volumes:
+            - ./front_admin:/usr/src/app
+        ports:
+            - '3000:3000'
+        working_dir: /usr/src/app
+        command: bash -c "npm install && npm run dev"
+        environment:
+            - VITE_API_URL=http://localhost:8000/api
+        networks:
+            - immo-project.net
+
+    node2:
+        image: 'node:latest'
+        volumes:
+            - ./front_client:/usr/src/app
+        ports:
+            - '3001:3000'
+        working_dir: /usr/src/app
+        command: bash -c "npm install && npm run dev"
+        environment:
+            - VITE_API_URL=http://localhost:8000/api
+        networks:
+            - immo-project.net
+
+    adminer:
         image: adminer
         ports:
-            - 8083:8080
-        restart: always
+            - '18077:8080'
+        networks:
+            - immo-project.net
+
+
+    
