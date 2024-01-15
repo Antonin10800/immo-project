@@ -25,6 +25,8 @@ services:
             - '3306:3306'
         networks:
             - immo-project.net
+        volumes:
+            - ./sql:/docker-entrypoint-initdb.d
 
 
     node:
